@@ -1,48 +1,33 @@
-import streamlit as st
-import sounddevice as sd
-import numpy as np
-import scipy.io.wavfile as wav
 import speech_recognition as sr
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 from gtts import gTTS
-import time
 
-print("Perfect!!")
+print("perfect!!")
 load_dotenv()
 
-# Load and check the Google API key
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    raise ValueError("GOOGLE_API_KEY is missing from environment variables.")
+GOOGLE_API_KEY=os.getenv("GOOGLE_API_KEY")
+os.environ["GOOGLE_API_KEY"]=GOOGLE_API_KEY
 
-os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
 
-# Voice input using sounddevice and speech_recognition
+
 def voice_input():
-    duration = 5  # Recording duration in seconds
-    sample_rate = 16000  # Sample rate
-
-    print("Listening...")
-    audio_data = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='int16')
-    sd.wait()  # Wait for the recording to complete
-    wav.write("temp_audio.wav", sample_rate, audio_data)  # Save as a temporary .wav file
-
-    # Recognize text from the audio file
-    recognizer = sr.Recognizer()
-    with sr.AudioFile("temp_audio.wav") as source:
-        audio = recognizer.record(source)
+    r=sr.Recognizer()
+    
+    with sr.Microphone() as source:
+        print("listening...")
+        audio=r.listen(source)
     try:
-        text = recognizer.recognize_google(audio)
-        print("You said:", text)
+        text=r.recognize_google(audio)
+        print("you said: ", text)
         return text
     except sr.UnknownValueError:
-        print("Sorry, could not understand the audio.")
+        print("sorry, could not understand the audio")
     except sr.RequestError as e:
-        print(f"Could not request results from Google Speech Recognition service: {e}")
+        print("could not request result from google speech recognition service: {0}".format(e))
+    
 
-# Text to speech function
 def text_to_speech(text):
     tts=gTTS(text=text, lang="en")
     
@@ -51,10 +36,27 @@ def text_to_speech(text):
 
 # LLM function
 def llm_model_object(user_text):
+    # Set up API key for Google Generative AI
     genai.configure(api_key=GOOGLE_API_KEY)
+    
+    # Enhanced prompt for structured, detailed responses
+    prompt = (
+        "Please generate a detailed and well-structured response to the following query. "
+        "Provide an in-depth explanation in clear, easy-to-read paragraphs. Use the following format: "
+        "1. Begin with an introductory overview. "
+        "2. Use clear headings for each main point. "
+        "3. Include bullet points or numbered lists where applicable for readability. "
+        "4. Ensure clarity and accuracy for technical terms and abbreviations, like 'ML' for 'Machine Learning', "
+        "or 'AI' for 'Artificial Intelligence'. Pronounce technical terms correctly, as specified."
+    )
+
+    # Combine the prompt with the user's question
+    full_prompt = f"{prompt}\n\nUser Query: {user_text}"
+    
+    # Use the Generative Model with the enhanced prompt
     model = genai.GenerativeModel('gemini-1.0-pro')
-    response = model.generate_content(user_text)
-    result = response.text.replace('*', '')  # Remove asterisks
+    response = model.generate_content(full_prompt)
+    
+    # Clean up the output
+    result = response.text.replace('*', '')  
     return result
-
-

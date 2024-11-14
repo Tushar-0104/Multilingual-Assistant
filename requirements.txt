@@ -1,10 +1,10 @@
 SpeechRecognition
 pipwin
 streamlit
-sounddevice
+pyaudio
 gTTS
 google-generativeai
 python-dotenv
-scipy
+
 
 -e .
