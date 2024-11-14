@@ -1,0 +1,13 @@
+SpeechRecognition
+pipwin
+streamlit
+sounddevice
+gTTS
+google-generativeai
+python-dotenv
+scipy
+playsound
+pydub
+PyObjC
+
+-e .
