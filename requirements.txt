@@ -6,8 +6,5 @@ gTTS
 google-generativeai
 python-dotenv
 scipy
-playsound
-pydub
-PyObjC
 
 -e .
